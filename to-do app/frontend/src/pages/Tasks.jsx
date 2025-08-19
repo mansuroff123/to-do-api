@@ -12,12 +12,12 @@ export default function Tasks() {
     })
 
     const createMutation = useMutation({
-        mutationFn: async (payload) => (await api.put("/api/tasks/", payload)).data,
+        mutationFn: async (payload) => (await api.post("/api/tasks/", payload)).data,
         onSuccess: () => { setTitle(""); qc.invalidateQueries({ queryKey: ['tasks'] }) }
     })
 
     const toggleMutation = useMutation({
-        mutationFn: async (t) => (await api.patch(`/api/tasks/${id}/`, { completed: !tasks.completed })).data,
+        mutationFn: async (t) => (await api.patch(`/api/tasks/${t.id}/`, { completed: !t.completed })).data,
         onSuccess: () => qc.invalidateQueries({ queryKey: ['tasks'] })
     })
 
