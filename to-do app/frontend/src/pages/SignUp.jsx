@@ -1,28 +1,52 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { useAuth } from "../hooks/useAuth.js";
+import api from "../api/client";
 
-export default function Login() {
+export default function SignUp() {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
-    const { login, loading, error } = useAuth();
-    const nav = useNavigate();
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+    const navigate = useNavigate();
 
-    const submit = async (e) => {
+    const handleSignUp = async (e) => {
         e.preventDefault();
-        const ok = await login(username, password);
-        if (ok) nav("/");
+        if (!username.trim() || !password.trim()) {
+            setError("Please fill in all fields");
+            return;
+        }
+
+        setLoading(true);
+        setError(null);
+
+        try {
+            const { data } = await api.post("/api/auth/register/", {
+                username,
+                password,
+            });
+
+            // Store tokens
+            localStorage.setItem("access", data.access);
+            localStorage.setItem("refresh", data.refresh);
+
+            // Redirect to tasks
+            navigate("/");
+        } catch (err) {
+            setError(err.response?.data?.error || "Failed to create account");
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100 flex items-center justify-center p-4">
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
             <div className="card w-full max-w-md shadow-xl bg-base-100">
                 <div className="card-body">
                     <h2 className="card-title text-2xl font-bold text-center justify-center mb-6">
-                        Sign In
+                        Create Account
                     </h2>
                     
-                    <form onSubmit={submit} className="space-y-4">
+                    <form onSubmit={handleSignUp} className="space-y-4">
                         <div className="form-control">
                             <label className="label">
                                 <span className="label-text font-medium">Username</span>
@@ -66,7 +90,7 @@ export default function Login() {
                                 className={`btn btn-primary w-full ${loading ? "loading" : ""}`}
                                 disabled={loading}
                             >
-                                {loading ? "Signing In..." : "Sign In"}
+                                {loading ? "Creating Account..." : "Sign Up"}
                             </button>
                         </div>
                     </form>
@@ -75,9 +99,9 @@ export default function Login() {
 
                     <div className="text-center">
                         <p className="text-sm">
-                            Don't have an account?{" "}
-                            <Link to="/signup" className="link link-primary font-medium">
-                                Sign up
+                            Already have an account?{" "}
+                            <Link to="/login" className="link link-primary font-medium">
+                                Sign in
                             </Link>
                         </p>
                     </div>
